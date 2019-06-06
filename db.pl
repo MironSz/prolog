@@ -1,28 +1,83 @@
-graph([ node(v0, [v1], [v2]),
-      node(v1, [v2], [v3]),
-      node(v2, [v3], [v0]),
-      node(v3, [], [v1]) ]).
-
-e(V1,V2) :-
-    graph(L),
+e(V1,V2,L) :-
     member(node(V1,_,EEDGES),L),
     member(V2,EEDGES).
 
-f(V1,V2) :-
-    graph(L),
+f(V1,V2,L) :-
     member(node(V1,FEDGES,_),L),
     member(V2,FEDGES).
-ef(V1,V2) :- e(V1,V2);f(V1,V2).
 
-remove_node(V,graph(G),graph(G_removed)) :-
-    not(member(node(V,_,_),G_removed)),
+ef(V1,V2,L) :- e(V1,V2,L);f(V1,V2,L).
+
+fedge(V,V2,G) :-
+    member(node(V2,_,Fedge),G),
+    member(V,Fedge).
+
+występujeWGrafie(V,L):-
+    member(node(V,_,_),L).
+
+eJestPoprawne(Edge,_) :- Edge=[].
+eJestPoprawne(Edge,G) :-
+    [V|L] =Edge,
+    member(node(V,_,_),G),
+    eJestPoprawne(L,G).
+
+fJestPoprawne(_,Fedge,_) :- Fedge =[].
+fJestPoprawne(V,Fedge,G) :-
+    [V2|L] =Fedge,
+    member(node(V2,_,F),G),
+    member(V,F),
+    fJestPoprawne(V,L,G).
+
+
+
+występujeTylkoRaz(G) :- G=[].
+występujeTylkoRaz(G) :- G=[_].
+występujeTylkoRaz(G) :-
+    [node(V,_,_)|T] = G,
+    \+ member(node(V,_,_),T),
+    występujeTylkoRaz(T).
+
+jestEFGrafemRec(G,_) :- G = [].
+jestEFGrafemRec(G,G2) :-
+    [node(V,Edge,Fedge)|L] = G,
+    fJestPoprawne(V,Fedge,G2),
+    eJestPoprawne(Edge,G2),
+    jestEFGrafemRec(L,G2).
+
+jestEFGrafem(G) :-
+    występujeTylkoRaz(G),
+    jestEFGrafemRec(G,G).
+
+
+jestŹródłem(V,G) :-
+    \+(
+        member(node(_,Edge,_),G),
+        member(V,Edge)
+      ).
+
+spełniaPierwszeZałożenie(V,V1,W1,G) :-
+    (\+ (e(V,V1,G),f(V,W1,G)))
+    ;
     (
-        member(node(V2,E,F),G),V2 \= V ->
-            delete(E,V,E_removed),
-            delete(F,V,F_removed),
-            member(node(V2,E_removed,F_removed),G_removed)
+        member(node(U,Edge,Fedge),G),
+        e(W1,U,G),
+        f(V1,U,G)
     ).
 
+spełniaPierwszeZałożenie(V,V1,W1,G) :-
+    (\+ (e(V1,V,G),f(V,W1,G)))
+    ;
+    (
+        member(node(U,Edge,Fedge),G),
+        e(W1,U,G),
+        f(V1,U,G)
+    ).
 
-is_in_graph(V1,[node(V,_,_)|L]) :- V1=V.
-is_in_graph(V1,[node(V,_,_)|L]) :- is_in_graph(V1,L).
+jestUjściem(V,G) :-
+    member(node(V,Edge,_),G),
+    Edge=[].
+
+%
+%
+%jestDobrzePermutujący(G) :-
+
