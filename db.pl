@@ -1,3 +1,4 @@
+example([node(v984, [v998], [v998]), node(v998, [v1012], [v1012]), node(v1012, [], [v998])]).
 e(V1,V2,L) :-
     member(node(V1,_,EEDGES),L),
     member(V2,EEDGES).
@@ -28,8 +29,6 @@ fJestPoprawne(V,Fedge,G) :-
     member(V,F),
     fJestPoprawne(V,L,G).
 
-
-
 występujeTylkoRaz(G) :- G=[].
 występujeTylkoRaz(G) :- G=[_].
 występujeTylkoRaz(G) :-
@@ -50,34 +49,84 @@ jestEFGrafem(G) :-
 
 
 jestŹródłem(V,G) :-
-    \+(
+    (\+((
         member(node(_,Edge,_),G),
         member(V,Edge)
-      ).
-
-spełniaPierwszeZałożenie(V,V1,W1,G) :-
-    (\+ (e(V,V1,G),f(V,W1,G)))
-    ;
-    (
-        member(node(U,Edge,Fedge),G),
-        e(W1,U,G),
-        f(V1,U,G)
-    ).
-
-spełniaPierwszeZałożenie(V,V1,W1,G) :-
-    (\+ (e(V1,V,G),f(V,W1,G)))
-    ;
-    (
-        member(node(U,Edge,Fedge),G),
-        e(W1,U,G),
-        f(V1,U,G)
-    ).
+      ))).
 
 jestUjściem(V,G) :-
     member(node(V,Edge,_),G),
     Edge=[].
 
-%
-%
-%jestDobrzePermutujący(G) :-
+nieSpełniaPierwszegoZałożenia(V,V1,W1,G) :-
+ \+ spełniaPierwszeZałożenie(V,V1,W1,G).
+
+spełniaPierwszeZałożenie(V,V1,W1,G) :-
+    (\+ ((e(V,V1,G),f(V,W1,G))))
+    ;
+    (
+        member(node(U,_,_),G),
+        e(W1,U,G),
+        f(V1,U,G)
+        ;
+        jestUjściem(W1,G)
+    ).
+
+nieSpełniaDrugiegoZałożenia(V,V1,W1,G) :-
+ \+ spełniaDrugieZałożenie(V,V1,W1,G).
+
+
+spełniaDrugieZałożenie(V,V1,W1,G) :-
+    (\+ ((e(V1,V,G),f(V,W1,G))))
+    ;
+    (
+        member(node(U,_,_),G),
+        e(W1,U,G),
+        f(V1,U,G)
+        ;
+        jestŹródłem(V1,G)
+    ).
+
+kontrprzykładPermutowalności(G) :-
+    member(node(V,_,_),G),
+    member(node(V1,_,_),G),
+    member(node(W1,_,_),G),
+    (
+        nieSpełniaDrugiegoZałożenia(V,V1,W1,G);
+        nieSpełniaPierwszegoZałożenia(V,V1,W1,G)
+    ).
+
+jestDobrzePermutujacy(G) :-
+   \+kontrprzykładPermutowalności(G).
+
+jestSucc(_,Lista1,Lista2) :-
+    Lista1=[].
+
+
+jestSucc(G,Lista1,Lista2) :-
+    [V|Rest1] = Lista1,
+    [W|Rest2] = Lista2,
+    V @< W,
+    f(V,W,G),
+    jestSucc(G,Rest1,Rest2).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
